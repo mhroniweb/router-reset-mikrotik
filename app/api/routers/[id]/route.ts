@@ -49,8 +49,14 @@ export async function PUT(
     const body = await req.json();
 
     // For updates, make password optional
+    // Remove password from validation if it's empty or only whitespace
+    if (typeof body.password === "string" && body.password.trim() === "") {
+      delete body.password;
+    }
+    // Validate with password optional
     const updateSchema = routerSchema.partial({ password: true });
     const validatedData = updateSchema.parse(body);
+
 
     await connectDB();
 
