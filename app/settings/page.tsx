@@ -46,7 +46,7 @@ export default function SettingsPage() {
     // Validate new password
     if (!formData.newPassword) {
       newErrors.newPassword = "New password is required";
-    } else if (formData.newPassword.length < 6) {
+    } else if (formData.newPassword.length < 8) {
       newErrors.newPassword = "Password must be at least 6 characters";
     } else if (formData.newPassword === formData.currentPassword) {
       newErrors.newPassword = "New password must be different from current";
@@ -203,7 +203,7 @@ export default function SettingsPage() {
               error={errors.newPassword}
               placeholder="Enter your new password"
               disabled={loading}
-              helperText="Password must be at least 6 characters long"
+              helperText="Password must be at least 8 characters long"
               leftIcon={
                 <svg
                   className="w-5 h-5"
