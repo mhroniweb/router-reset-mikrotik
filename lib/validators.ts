@@ -10,20 +10,14 @@ export const routerSchema = z.object({
     .max(100, "Name must be less than 100 characters")
     .trim(),
 
-  ipAddress: z
-    .string()
-    .regex(
-      /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
-      "Invalid IP address format"
-    ),
-
+  ipAddress: z.string(),
   username: z
     .string()
     .min(1, "Username is required")
     .max(50, "Username must be less than 50 characters")
     .trim(),
 
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: z.string().min(4, "Password must be at least 4 characters"),
 
   port: z
     .number()
@@ -56,14 +50,7 @@ export const resetUserSchema = z.object({
 export const userSchema = z.object({
   email: z.string().email("Invalid email address").toLowerCase().trim(),
 
-  password: z
-    .string()
-    .min(12, "Password must be at least 12 characters")
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
-      "Password must contain uppercase, lowercase, number, and special character (@$!%*?&)"
-    ),
-
+  password: z.string().min(6, "Password must be at least 6 characters"),
   name: z
     .string()
     .min(1, "Name is required")
@@ -76,12 +63,5 @@ export const userSchema = z.object({
  */
 export const adminPasswordSchema = z.object({
   currentPassword: z.string().min(1, "Current password is required"),
-  newPassword: z
-    .string()
-    .min(12, "New password must be at least 12 characters")
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/,
-      "New password must contain uppercase, lowercase, number, and special character (@$!%*?&)"
-    ),
+  newPassword: z.string().min(6, "New password must be at least 6 characters"),
 });
-
