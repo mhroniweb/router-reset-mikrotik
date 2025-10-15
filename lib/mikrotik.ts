@@ -145,15 +145,21 @@ export async function removeUserMacAddress(
       return false; // User not found
     }
 
-    // Remove MAC address by setting it to empty
+    // Check if user has a MAC address
+    let hasRemovedMac = false;
     for (const user of users) {
-      await conn.write("/ip/hotspot/user/set", [
-        `=.id=${user[".id"]}`,
-        "=mac-address=",
-      ]);
+      // Only try to remove if user has a mac-address field
+      if (user["mac-address"]) {
+        // Remove MAC address by unsetting the field
+        await conn.write("/ip/hotspot/user/set", [
+          `=.id=${user[".id"]}`,
+          "!mac-address",
+        ]);
+        hasRemovedMac = true;
+      }
     }
 
-    return true;
+    return hasRemovedMac;
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Failed to remove MAC address: ${errorMessage}`);
