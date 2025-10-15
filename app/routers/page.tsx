@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import RouterForm from "@/components/RouterForm";
@@ -22,7 +22,7 @@ export default function RoutersPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
 
-  const fetchRouters = async () => {
+  const fetchRouters = useCallback(async () => {
     try {
       const response = await fetch("/api/routers");
 
@@ -36,16 +36,18 @@ export default function RoutersPage() {
 
       const data = await response.json();
       setRouters(data.routers);
-    } catch (error: any) {
-      toast.error(error.message);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to fetch routers";
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     fetchRouters();
-  }, []);
+  }, [fetchRouters]);
 
   const handleSuccess = () => {
     setShowForm(false);

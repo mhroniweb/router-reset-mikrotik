@@ -6,6 +6,7 @@ import {
   ReactNode,
   useState,
   useEffect,
+  useCallback,
 } from "react";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +40,14 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(
     const [isClosing, setIsClosing] = useState(false);
     const [progress, setProgress] = useState(100);
 
+    const handleDismiss = useCallback(() => {
+      setIsClosing(true);
+      setTimeout(() => {
+        setIsVisible(false);
+        onDismiss?.();
+      }, 300); // Match animation duration
+    }, [onDismiss]);
+
     // Auto-close timer
     useEffect(() => {
       if (!autoClose) return;
@@ -55,15 +64,7 @@ const Alert = forwardRef<HTMLDivElement, AlertProps>(
       }, 50);
 
       return () => clearInterval(interval);
-    }, [autoClose]);
-
-    const handleDismiss = () => {
-      setIsClosing(true);
-      setTimeout(() => {
-        setIsVisible(false);
-        onDismiss?.();
-      }, 300); // Match animation duration
-    };
+    }, [autoClose, handleDismiss]);
 
     if (!isVisible) return null;
 
