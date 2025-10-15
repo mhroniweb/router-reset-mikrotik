@@ -129,40 +129,55 @@ export async function removeHotspotCookies(
 }
 
 /**
- * Remove MAC address from hotspot user profile
+ * Clear MAC address from hotspot user profile
+ * Sets the mac-address field to 00:00:00:00:00:00 in /ip/hotspot/user
  */
-export async function removeUserMacAddress(
+export async function removeUserByMacAddress(
   conn: RouterOSAPI,
   username: string
-): Promise<boolean> {
+): Promise<{ removed: boolean; macAddresses: string[] }> {
   try {
-    // Get the hotspot user
+    // Get the user from the hotspot user database
     const users = await conn.write("/ip/hotspot/user/print", [
       `?name=${username}`,
     ]);
 
     if (!users || users.length === 0) {
-      return false; // User not found
+      return { removed: false, macAddresses: [] };
     }
 
-    // Check if user has a MAC address
-    let hasRemovedMac = false;
+    const macAddresses: string[] = [];
+    let removedCount = 0;
+
+    // Process each user profile
     for (const user of users) {
-      // Only try to remove if user has a mac-address field
-      if (user["mac-address"]) {
-        // Remove MAC address by unsetting the field
+      const currentMac = user["mac-address"];
+      const userId = user[".id"];
+
+      // If user has a MAC address set in their profile
+      if (currentMac && currentMac !== "00:00:00:00:00:00") {
+        macAddresses.push(currentMac);
+
+        // Set MAC address to 00:00:00:00:00:00 (means no MAC restriction)
         await conn.write("/ip/hotspot/user/set", [
-          `=.id=${user[".id"]}`,
-          "!mac-address",
+          `=.id=${userId}`,
+          "=mac-address=00:00:00:00:00:00",
         ]);
-        hasRemovedMac = true;
+
+        removedCount++;
+      } else if (!currentMac || currentMac === "00:00:00:00:00:00") {
+        removedCount++; // Consider it already cleared
       }
     }
 
-    return hasRemovedMac;
+    if (removedCount > 0) {
+      return { removed: true, macAddresses };
+    } else {
+      return { removed: false, macAddresses };
+    }
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to remove MAC address: ${errorMessage}`);
+    throw new Error(`Failed to clear MAC address: ${errorMessage}`);
   }
 }
 
@@ -222,20 +237,30 @@ export async function resetHotspotUser(
       }
     }
 
-    // Remove MAC address from user profile
+    // Clear MAC address from user profile
     if (options.removeMacAddress) {
       try {
-        const removed = await removeUserMacAddress(conn, username);
-        result.operations.macAddressRemoved = true;
-        result.details.push(
-          removed
-            ? `✓ Removed MAC address from user profile`
-            : `ℹ User not found in hotspot users`
+        const { removed, macAddresses } = await removeUserByMacAddress(
+          conn,
+          username
         );
+        result.operations.macAddressRemoved = removed;
+
+        if (removed && macAddresses.length > 0) {
+          result.details.push(
+            `✓ Cleared MAC address from user profile: ${macAddresses.join(
+              ", "
+            )} → 00:00:00:00:00:00`
+          );
+        } else if (removed) {
+          result.details.push(`✓ User profile has no MAC address restriction`);
+        } else {
+          result.details.push(`ℹ No MAC address found in user profile`);
+        }
       } catch (error: unknown) {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
-        result.details.push(`✗ Failed to remove MAC address: ${errorMessage}`);
+        result.details.push(`✗ Failed to clear MAC address: ${errorMessage}`);
       }
     }
 

@@ -46,6 +46,11 @@ export async function GET(
     const conn = await connectToRouter(routerConfig);
     const activeUsers = await getHotspotActiveUsers(conn);
     conn.close();
+    activeUsers.forEach((user: HotspotUser) => {
+      if (user.user === "52898322") {
+        console.log("user==============>", user);
+      }
+    });
 
     // Extract unique usernames
     const usernames = Array.from(
