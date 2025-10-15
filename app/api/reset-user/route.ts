@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     const options: ResetOptions = {
       removeActive: validatedData.removeActive,
       removeCookies: validatedData.removeCookies,
-      removeMacBindings: validatedData.removeMacBindings,
+      removeMacAddress: validatedData.removeMacAddress,
     };
 
     // Execute reset operation

@@ -41,7 +41,7 @@ export const resetUserSchema = z.object({
 
   removeActive: z.boolean().default(true),
   removeCookies: z.boolean().default(true),
-  removeMacBindings: z.boolean().default(true),
+  removeMacAddress: z.boolean().default(true),
 });
 
 /**

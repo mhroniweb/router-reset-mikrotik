@@ -32,7 +32,7 @@ export default function UserResetForm({ routers }: UserResetFormProps) {
     username: "",
     removeActive: true,
     removeCookies: true,
-    removeMacBindings: true,
+    removeMacAddress: true,
   });
 
   const [result, setResult] = useState<{
@@ -40,7 +40,7 @@ export default function UserResetForm({ routers }: UserResetFormProps) {
     operations?: {
       activeRemoved: boolean;
       cookiesRemoved: boolean;
-      macBindingsRemoved: boolean;
+      macAddressRemoved: boolean;
     };
     details?: string[];
     error?: string;
@@ -275,12 +275,12 @@ export default function UserResetForm({ routers }: UserResetFormProps) {
                 />
 
                 <Checkbox
-                  label="Remove MAC Address Bindings"
-                  checked={formData.removeMacBindings}
+                  label="Remove MAC Address from User Profile"
+                  checked={formData.removeMacAddress}
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      removeMacBindings: e.target.checked,
+                      removeMacAddress: e.target.checked,
                     })
                   }
                 />
@@ -361,8 +361,8 @@ export default function UserResetForm({ routers }: UserResetFormProps) {
                   )}
                 </li>
                 <li>
-                  MAC Bindings:{" "}
-                  {result.operations.macBindingsRemoved ? (
+                  MAC Address:{" "}
+                  {result.operations.macAddressRemoved ? (
                     <span className="text-green-600 font-medium">
                       ✓ Processed
                     </span>

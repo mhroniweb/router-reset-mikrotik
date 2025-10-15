@@ -12,14 +12,13 @@ export interface HotspotUser {
   user?: string;
   name?: string;
   address?: string;
-  "mac-address"?: string;
   [key: string]: unknown;
 }
 
 export interface ResetOptions {
   removeActive: boolean;
   removeCookies: boolean;
-  removeMacBindings: boolean;
+  removeMacAddress: boolean;
 }
 
 export interface ResetResult {
@@ -27,7 +26,7 @@ export interface ResetResult {
   operations: {
     activeRemoved: boolean;
     cookiesRemoved: boolean;
-    macBindingsRemoved: boolean;
+    macAddressRemoved: boolean;
   };
   details: string[];
   error?: string;
@@ -130,33 +129,34 @@ export async function removeHotspotCookies(
 }
 
 /**
- * Remove MAC address bindings for user
+ * Remove MAC address from hotspot user profile
  */
-export async function removeUserMacBindings(
+export async function removeUserMacAddress(
   conn: RouterOSAPI,
   username: string
 ): Promise<boolean> {
   try {
-    // Get all IP bindings for the user
-    const bindings = await conn.write("/ip/hotspot/ip-binding/print", [
-      `?user=${username}`,
+    // Get the hotspot user
+    const users = await conn.write("/ip/hotspot/user/print", [
+      `?name=${username}`,
     ]);
 
-    if (!bindings || bindings.length === 0) {
-      return false; // No bindings found
+    if (!users || users.length === 0) {
+      return false; // User not found
     }
 
-    // Remove each binding
-    for (const binding of bindings) {
-      await conn.write("/ip/hotspot/ip-binding/remove", [
-        `=.id=${binding[".id"]}`,
+    // Remove MAC address by setting it to empty
+    for (const user of users) {
+      await conn.write("/ip/hotspot/user/set", [
+        `=.id=${user[".id"]}`,
+        "=mac-address=",
       ]);
     }
 
     return true;
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to remove MAC bindings: ${errorMessage}`);
+    throw new Error(`Failed to remove MAC address: ${errorMessage}`);
   }
 }
 
@@ -174,7 +174,7 @@ export async function resetHotspotUser(
     operations: {
       activeRemoved: false,
       cookiesRemoved: false,
-      macBindingsRemoved: false,
+      macAddressRemoved: false,
     },
     details: [],
   };
@@ -216,20 +216,20 @@ export async function resetHotspotUser(
       }
     }
 
-    // Remove MAC bindings
-    if (options.removeMacBindings) {
+    // Remove MAC address from user profile
+    if (options.removeMacAddress) {
       try {
-        const removed = await removeUserMacBindings(conn, username);
-        result.operations.macBindingsRemoved = true;
+        const removed = await removeUserMacAddress(conn, username);
+        result.operations.macAddressRemoved = true;
         result.details.push(
           removed
-            ? `✓ Removed MAC address bindings`
-            : `ℹ No MAC bindings found for user`
+            ? `✓ Removed MAC address from user profile`
+            : `ℹ User not found in hotspot users`
         );
       } catch (error: unknown) {
         const errorMessage =
           error instanceof Error ? error.message : String(error);
-        result.details.push(`✗ Failed to remove MAC bindings: ${errorMessage}`);
+        result.details.push(`✗ Failed to remove MAC address: ${errorMessage}`);
       }
     }
 
